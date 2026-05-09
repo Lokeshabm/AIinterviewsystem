@@ -1,0 +1,47 @@
+{% extends 'interview/base.html' %}
+{% load static %}
+{% block content %}
+<section class="interview-shell">
+    <div class="live-panel">
+        <h2>Live Preview</h2>
+        <video id="cameraPreview" autoplay muted playsinline></video>
+        <div class="media-controls">
+            <button id="startCamera" class="secondary-button">Start Camera</button>
+            <button id="toggleSpeech" class="secondary-button">Start Speech</button>
+        </div>
+    </div>
+    <div class="question-panel">
+        <div class="progress-bar">
+            <div id="progressFill"></div>
+        </div>
+        <div class="question-card">
+            <h3>Question <span id="currentIndex">1</span> / {{ questions.count }}</h3>
+            <p id="questionText"></p>
+            <div class="timer">Time left: <span id="timerValue">60</span>s</div>
+            <textarea id="answerText" placeholder="Speak or type your answer here..."></textarea>
+            <div class="controls-row">
+                <button id="previousBtn" class="secondary-button">Previous</button>
+                <button id="evaluateBtn" class="primary-button">Submit Answer</button>
+                <button id="nextBtn" class="secondary-button">Next</button>
+            </div>
+        </div>
+        <div class="results-card" id="resultBlock" hidden>
+            <h4>Evaluation</h4>
+            <p><strong>Score:</strong> <span id="resultScore"></span></p>
+            <p><strong>Strength:</strong> <span id="resultStrength"></span></p>
+            <p><strong>Weakness:</strong> <span id="resultWeakness"></span></p>
+            <p><strong>Improvement:</strong> <span id="resultImprovement"></span></p>
+            <button id="saveScoreBtn" class="primary-button">Finish Interview</button>
+        </div>
+    </div>
+</section>
+<script>
+    const questions = [
+        {% for question in questions %}
+        { id: {{ question.id }}, text: "{{ question.text|escapejs }}", category: '{{ question.category }}' }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    const interviewId = {{ interview.id }};
+</script>
+<script src="{% static 'interview/js/interview.js' %}"></script>
+{% endblock %}

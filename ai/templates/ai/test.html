@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenAI API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .container { margin-bottom: 20px; }
+        textarea { width: 100%; height: 100px; padding: 10px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; padding: 10px; background: #f8f9fa; border-radius: 4px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>OpenAI API Integration Test</h1>
+
+    <div class="container">
+        <label for="prompt">Enter your prompt:</label><br>
+        <textarea id="prompt" placeholder="Ask me anything..."></textarea>
+    </div>
+
+    <div class="container">
+        <label for="model">Model (optional):</label><br>
+        <select id="model">
+            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+            <option value="gpt-4">GPT-4</option>
+        </select>
+    </div>
+
+    <button onclick="testAPI()">Generate Response</button>
+
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const prompt = document.getElementById('prompt').value.trim();
+            const model = document.getElementById('model').value;
+            const resultDiv = document.getElementById('result');
+
+            if (!prompt) {
+                resultDiv.innerHTML = '<span class="error">Please enter a prompt</span>';
+                return;
+            }
+
+            resultDiv.innerHTML = 'Loading...';
+
+            try {
+                const response = await fetch('/api/ai/generate/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // Add CSRF token if needed
+                        // 'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        model: model,
+                        max_tokens: 150
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <strong>Response:</strong><br>
+                            ${data.response}<br><br>
+                            <small>Model: ${data.model} | Prompt length: ${data.prompt_length}</small>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">Error: ${data.error}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">Network error: ${error.message}</span>`;
+            }
+        }
+
+        // Function to get CSRF token from cookies (if using Django CSRF protection)
+        function getCsrfToken() {
+            const name = 'csrftoken';
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

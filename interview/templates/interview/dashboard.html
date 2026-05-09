@@ -1,0 +1,36 @@
+{% extends 'interview/base.html' %}
+{% block content %}
+<section class="dashboard-grid">
+    <aside class="dashboard-card small-card">
+        <h2>Welcome, {{ request.user.username }}</h2>
+        <p>Share your resume to generate interview questions tailored to your experience.</p>
+        <div class="dashboard-actions">
+            <a class="secondary-button" href="{% url 'dashboard' %}">Upload Resume</a>
+            <a class="secondary-button" href="{% url 'view_scores' %}">View Scores</a>
+            {% if latest_interview %}
+                <a class="secondary-button" href="{% url 'start_interview' latest_interview.id %}">Start Interview</a>
+            {% endif %}
+        </div>
+        {% if latest_interview and latest_interview.passed %}
+            <div class="status-card">
+                <strong>Eligible for certificate.</strong>
+            </div>
+        {% elif latest_interview and latest_interview.total_score is not None %}
+            <div class="status-card">
+                <strong>Your latest interview score: {{ latest_interview.total_score }}/10</strong>
+            </div>
+        {% endif %}
+    </aside>
+    <section class="dashboard-card large-card">
+        <h2>Upload Resume</h2>
+        <form method="post" action="{% url 'upload_resume' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label>Target Role</label>
+            <input type="text" name="role" placeholder="e.g. Software Engineer" required>
+            <label>Resume File (PDF or DOCX)</label>
+            <input type="file" name="resume_file" accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required>
+            <button class="primary-button" type="submit">Generate Questions</button>
+        </form>
+    </section>
+</section>
+{% endblock %}

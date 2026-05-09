@@ -1,0 +1,26 @@
+{% extends 'interview/base.html' %}
+{% block content %}
+<section class="scores-page">
+    <h2>Your Interview Scores</h2>
+    {% if interviews %}
+        <div class="score-grid">
+            {% for interview in interviews %}
+                <div class="score-card">
+                    <h3>{{ interview.role }}</h3>
+                    <p><strong>Date:</strong> {{ interview.date|date:'M d, Y H:i' }}</p>
+                    <p><strong>Score:</strong> {{ interview.total_score|default:'Pending' }}</p>
+                    <p><strong>Status:</strong> {% if interview.passed %}<span class="passed">Passed</span>{% elif interview.total_score %}<span class="failed">Needs Improvement</span>{% else %}<span class="pending">In Progress</span>{% endif %}</p>
+                    <div class="score-actions">
+                        {% if interview.passed %}
+                            <a class="primary-button" href="{% url 'certificate' interview.id %}">Download Certificate</a>
+                        {% endif %}
+                        <a class="secondary-button" href="{% url 'start_interview' interview.id %}">Review Interview</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>You do not have any saved interviews yet. Upload a resume to get started.</p>
+    {% endif %}
+</section>
+{% endblock %}
