@@ -14,4 +14,5 @@ urlpatterns = [
     path('save_score/', views.save_score, name='save_score'),
     path('view_scores/', views.view_scores, name='view_scores'),
     path('certificate/<int:interview_id>/', views.certificate_view, name='certificate'),
+    path('certificate/<int:interview_id>/download/', views.download_certificate_pdf, name='certificate_download'),
 ]

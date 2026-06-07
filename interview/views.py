@@ -202,9 +202,17 @@ def save_score(request):
         return HttpResponseBadRequest('No responses found to score.')
     total_score = sum(r.score for r in responses) / responses.count()
     interview.total_score = round(total_score, 1)
-    interview.passed = interview.total_score >= 6.0
+    interview.passed = interview.total_score > 7.0
     interview.save()
     return JsonResponse({'total_score': interview.total_score, 'passed': interview.passed})
+
+
+@login_required
+def get_certificate_ids(interview):
+    year = interview.date.year
+    candidate_id = f'BML-{year}-{interview.id:06d}'
+    certificate_id = f'CERT-{year}-{interview.id:06d}'
+    return candidate_id, certificate_id
 
 
 @login_required
@@ -219,7 +227,22 @@ def certificate_view(request, interview_id):
     if not interview.passed or interview.total_score is None:
         messages.error(request, 'You are not eligible to download a certificate yet.')
         return redirect('view_scores')
-    pdf_buffer = build_certificate(request.user, interview)
+    candidate_id, certificate_id = get_certificate_ids(interview)
+    return render(request, 'interview/certificate_preview.html', {
+        'interview': interview,
+        'candidate_id': candidate_id,
+        'certificate_id': certificate_id,
+    })
+
+
+@login_required
+def download_certificate_pdf(request, interview_id):
+    interview = get_object_or_404(Interview, id=interview_id, user=request.user)
+    if not interview.passed or interview.total_score is None:
+        messages.error(request, 'You are not eligible to download a certificate yet.')
+        return redirect('view_scores')
+    candidate_id, certificate_id = get_certificate_ids(interview)
+    pdf_buffer = build_certificate(request.user, interview, candidate_id=candidate_id, certificate_id=certificate_id)
     response = HttpResponse(pdf_buffer, content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="Certificate_{candidate_id}.pdf"'
     return response

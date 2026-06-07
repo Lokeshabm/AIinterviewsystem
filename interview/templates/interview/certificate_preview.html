@@ -1,0 +1,18 @@
+{% extends 'interview/base.html' %}
+{% block content %}
+<section class="dashboard-card certificate-preview-card">
+    <h2>Certificate Preview</h2>
+    <p>You can download your certificate as a PDF using the link below.</p>
+    <div class="certificate-summary">
+        <p><strong>Candidate Name:</strong> {{ request.user.get_full_name|default:request.user.username }}</p>
+        <p><strong>Candidate ID:</strong> {{ candidate_id }}</p>
+        <p><strong>Certificate ID:</strong> {{ certificate_id }}</p>
+        <p><strong>Course:</strong> {{ interview.role }}</p>
+        <p><strong>Completion Date:</strong> {{ interview.date|date:'F j, Y' }}</p>
+    </div>
+    <div class="certificate-actions">
+        <a class="primary-button" href="{% url 'certificate_download' interview.id %}">Download Certificate PDF</a>
+        <a class="secondary-button" href="{% url 'view_scores' %}">Back to Scores</a>
+    </div>
+</section>
+{% endblock %}

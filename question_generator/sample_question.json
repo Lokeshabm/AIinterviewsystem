@@ -1,0 +1,16 @@
+{
+  "question_uid": "11111111-1111-1111-1111-111111111111",
+  "branch": "CSE",
+  "subject": "Data Structures",
+  "topic": "Binary Search Tree",
+  "qtype": "MCQ",
+  "difficulty": "Easy",
+  "statement": "Given a binary search tree with 100 nodes, what is the average time complexity of search?",
+  "options": [{"label":"A","text":"O(1)"},{"label":"B","text":"O(log n"},{"label":"C","text":"O(n)"},{"label":"D","text":"O(n log n)"}],
+  "correct_answer": "B",
+  "explanation": "On average, BST search traverses height ~log n for balanced trees.",
+  "tags": ["trees","searching"],
+  "estimated_time": 5,
+  "marks": 2,
+  "provenance": {"template_id": "tpl_cse_ds_mcq_001", "params": {"n": 100}}
+}

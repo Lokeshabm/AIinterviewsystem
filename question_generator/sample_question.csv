@@ -1,0 +1,2 @@
+question_uid,branch,subject,topic,qtype,difficulty,statement,option_A,option_B,option_C,option_D,correct_answer,explanation,tags,estimated_time,marks
+11111111-1111-1111-1111-111111111111,CSE,Data Structures,Binary Search Tree,MCQ,Easy,"Given a binary search tree with 100 nodes, what is the average time complexity of search?","O(1)","O(log n)","O(n)","O(n log n)",B,"On average, BST search traverses height ~log n for balanced trees.",trees;searching,5,2

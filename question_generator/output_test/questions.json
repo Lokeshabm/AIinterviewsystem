@@ -1,0 +1,159 @@
+[
+  {
+    "question_uid": "48730c1f-096a-45ba-b0a9-a73d421ec8cc",
+    "branch": "CSE",
+    "subject": "Data Structures",
+    "topic": "Binary Search Tree",
+    "qtype": "MCQ",
+    "difficulty": "Easy",
+    "statement": "Given a binary search tree with 881 nodes, what is the average time complexity of search?",
+    "params": {
+      "n": 881
+    },
+    "created_at": "2026-06-07T07:40:14.543783Z",
+    "template_id": "tpl_cse_ds_mcq_001",
+    "options": [
+      {
+        "label": "A",
+        "text": "O(log n)"
+      },
+      {
+        "label": "B",
+        "text": "O(1)"
+      },
+      {
+        "label": "C",
+        "text": "O(n)"
+      },
+      {
+        "label": "D",
+        "text": "O(n log n)"
+      }
+    ],
+    "correct_answer": "O(log n)",
+    "explanation": "Standard complexity; balanced tree yields O(log n) average.",
+    "marks": 2,
+    "estimated_time": 5,
+    "canonical_text": "given a binary search tree with 881 nodes, what is the average time complexity of search?",
+    "canonical_hash": "1b456453972cf620ecee81120dd94a94c2d95243c0b984a02a61da1748d456af"
+  },
+  {
+    "question_uid": "e0fb0cfd-dae8-464f-8887-da2f0e900b9b",
+    "branch": "CSE",
+    "subject": "Data Structures",
+    "topic": "Binary Search Tree",
+    "qtype": "MCQ",
+    "difficulty": "Easy",
+    "statement": "Given a binary search tree with 294 nodes, what is the average time complexity of search?",
+    "params": {
+      "n": 294
+    },
+    "created_at": "2026-06-07T07:40:14.543863Z",
+    "template_id": "tpl_cse_ds_mcq_001",
+    "options": [
+      {
+        "label": "A",
+        "text": "O(n)"
+      },
+      {
+        "label": "B",
+        "text": "O(1)"
+      },
+      {
+        "label": "C",
+        "text": "O(n log n)"
+      },
+      {
+        "label": "D",
+        "text": "O(log n)"
+      }
+    ],
+    "correct_answer": "O(log n)",
+    "explanation": "Standard complexity; balanced tree yields O(log n) average.",
+    "marks": 2,
+    "estimated_time": 5,
+    "canonical_text": "given a binary search tree with 294 nodes, what is the average time complexity of search?",
+    "canonical_hash": "9adc0e8c5e075bf0c6191091c74b213a4ee2279e635b689246d85f8af1159917"
+  },
+  {
+    "question_uid": "c8a57cfc-6539-417e-9e73-07abfb1e03b2",
+    "branch": "CSE",
+    "subject": "Algorithms",
+    "topic": "Time Complexity",
+    "qtype": "TF",
+    "difficulty": "Easy",
+    "statement": "The time complexity of binary search is O(log n).",
+    "params": {},
+    "created_at": "2026-06-07T07:40:14.543884Z",
+    "template_id": "tpl_cse_algo_tf_001",
+    "options": [
+      "True",
+      "False"
+    ],
+    "correct_answer": "True",
+    "explanation": "Binary search has logarithmic time complexity.",
+    "marks": 1,
+    "estimated_time": 1,
+    "canonical_text": "the time complexity of binary search is o(log n).",
+    "canonical_hash": "57a407f43730b07f8c745d78ccae196c65d5f66d07f49440a2fa26156e62e009"
+  },
+  {
+    "question_uid": "b662472a-7f5f-4474-bb6a-18cc4072b09c",
+    "branch": "CSE",
+    "subject": "Data Structures",
+    "topic": "Binary Search Tree",
+    "qtype": "MCQ",
+    "difficulty": "Easy",
+    "statement": "Given a binary search tree with 761 nodes, what is the average time complexity of search?",
+    "params": {
+      "n": 761
+    },
+    "created_at": "2026-06-07T07:40:14.543910Z",
+    "template_id": "tpl_cse_ds_mcq_001",
+    "options": [
+      {
+        "label": "A",
+        "text": "O(1)"
+      },
+      {
+        "label": "B",
+        "text": "O(n)"
+      },
+      {
+        "label": "C",
+        "text": "O(n log n)"
+      },
+      {
+        "label": "D",
+        "text": "O(log n)"
+      }
+    ],
+    "correct_answer": "O(log n)",
+    "explanation": "Standard complexity; balanced tree yields O(log n) average.",
+    "marks": 2,
+    "estimated_time": 5,
+    "canonical_text": "given a binary search tree with 761 nodes, what is the average time complexity of search?",
+    "canonical_hash": "c366ad71d8c34da21bad05f5bc6b32a640490a761b08ccb689aaa64138657bc8"
+  },
+  {
+    "question_uid": "57293c2b-5ac6-4429-894b-abcad47d25d8",
+    "branch": "ECE",
+    "subject": "Circuits",
+    "topic": "Resistors",
+    "qtype": "NUM",
+    "difficulty": "Medium",
+    "statement": "A series circuit has resistors R1=67 ohms and R2=29 ohms. Compute the total resistance.",
+    "params": {
+      "r1": 67,
+      "r2": 29
+    },
+    "created_at": "2026-06-07T07:40:14.543936Z",
+    "template_id": "tpl_ece_num_001",
+    "correct_answer": "96",
+    "explanation": "Total resistance in series is R1+R2 = 67+29 = 96 ohms.",
+    "marks": 3,
+    "estimated_time": 7,
+    "canonical_text": "a series circuit has resistors r1=67 ohms and r2=29 ohms. compute the total resistance.",
+    "canonical_hash": "d1a77e6703e0d608d657e03628caef9f0d2380acb3d1654a22c1e205413f6406"
+  }
+]

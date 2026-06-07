@@ -12,7 +12,8 @@
                     <p><strong>Status:</strong> {% if interview.passed %}<span class="passed">Passed</span>{% elif interview.total_score %}<span class="failed">Needs Improvement</span>{% else %}<span class="pending">In Progress</span>{% endif %}</p>
                     <div class="score-actions">
                         {% if interview.passed %}
-                            <a class="primary-button" href="{% url 'certificate' interview.id %}">Download Certificate</a>
+                            <a class="primary-button" href="{% url 'certificate' interview.id %}">View Certificate</a>
+                            <a class="secondary-button" href="{% url 'certificate_download' interview.id %}">Download PDF</a>
                         {% endif %}
                         <a class="secondary-button" href="{% url 'start_interview' interview.id %}">Review Interview</a>
                     </div>
