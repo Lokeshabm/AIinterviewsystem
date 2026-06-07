@@ -9,5 +9,6 @@ ENV/
 *.sqlite3
 media/
 staticfiles/
+question_generator/output_test/
 .DS_Store
 .env

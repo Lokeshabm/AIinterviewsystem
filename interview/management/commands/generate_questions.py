@@ -1,44 +1,71 @@
-from __future__ import annotations
-
-import subprocess
-import sys
+import json
 from pathlib import Path
+from django.core.management.base import BaseCommand
+from django.conf import settings
 
-from django.core.management.base import BaseCommand, CommandError
+try:
+    from question_generator.generator import build_question_from_template, export_json, export_csv, export_sql
+except ImportError:
+    build_question_from_template = None
+    export_json = None
+    export_csv = None
+    export_sql = None
+
+
+def load_question_templates():
+    template_path = Path(settings.BASE_DIR) / 'question_generator' / 'templates.json'
+    if not template_path.exists():
+        raise FileNotFoundError(f'Could not find question templates at {template_path}')
+    with template_path.open('r', encoding='utf-8') as f:
+        return json.load(f)
 
 
 class Command(BaseCommand):
-    help = 'Run the project-local question_generator to produce question sets.'
+    help = 'Generate questions using question_generator templates and export them to a file.'
 
     def add_arguments(self, parser):
-        parser.add_argument('--count', type=int, default=10, help='Number of questions to generate')
-        parser.add_argument('--outdir', type=str, default='question_generator/output', help='Output directory for generated files')
+        parser.add_argument('--count', type=int, default=10, help='Number of questions to generate.')
+        parser.add_argument('--outdir', type=str, default='question_generator/output_django', help='Output directory for generated files.')
+        parser.add_argument('--format', choices=['json', 'csv', 'sql'], default='json', help='Export format.')
+        parser.add_argument('--role', type=str, default='', help='Optional role keyword to prioritize template selection.')
 
     def handle(self, *args, **options):
-        count = options.get('count')
-        outdir = options.get('outdir')
+        if build_question_from_template is None:
+            raise RuntimeError('question_generator.generator is not available. Ensure question_generator is importable.')
 
-        project_root = Path(__file__).resolve().parents[3]
-        generator_py = project_root / 'question_generator' / 'generator.py'
+        count = options['count']
+        outdir = Path(settings.BASE_DIR) / options['outdir']
+        outdir.mkdir(parents=True, exist_ok=True)
+        fmt = options['format']
+        role = options['role'].strip().lower()
 
-        if not generator_py.exists():
-            raise CommandError(f'question_generator not found at {generator_py}')
+        templates = load_question_templates()
+        if not templates:
+            raise RuntimeError('No question templates were loaded.')
 
-        # Ensure output directory exists (relative to project root when a relative path is provided)
-        outdir_path = Path(outdir)
-        if not outdir_path.is_absolute():
-            outdir_path = project_root / outdir_path
-        outdir_path.mkdir(parents=True, exist_ok=True)
+        if role:
+            templates = [tpl for tpl in templates if role in tpl.get('branch', '').lower() or role in tpl.get('subject', '').lower() or role in tpl.get('topic', '').lower()]
+        if not templates:
+            templates = load_question_templates()
 
-        cmd = [sys.executable, str(generator_py), '--count', str(count), '--outdir', str(outdir_path)]
+        questions = []
+        for i, tpl in enumerate(templates):
+            if len(questions) >= count:
+                break
+            questions.append(build_question_from_template(tpl))
 
-        self.stdout.write(self.style.NOTICE(f'Running question generator: {cmd}'))
-        try:
-            result = subprocess.run(cmd, cwd=str(generator_py.parent), capture_output=True, text=True, check=True)
-            if result.stdout:
-                self.stdout.write(result.stdout)
-            if result.stderr:
-                self.stderr.write(result.stderr)
-            self.stdout.write(self.style.SUCCESS(f'Generated questions in {outdir_path}'))
-        except subprocess.CalledProcessError as exc:
-            raise CommandError(f'Generator failed: {exc}\n{exc.stdout}\n{exc.stderr}')
+        outpath = outdir / f'generated_questions.{fmt}'
+        if fmt == 'json':
+            if export_json is None:
+                raise RuntimeError('JSON exporter is not available.')
+            export_json(questions, outpath)
+        elif fmt == 'csv':
+            if export_csv is None:
+                raise RuntimeError('CSV exporter is not available.')
+            export_csv(questions, outpath)
+        elif fmt == 'sql':
+            if export_sql is None:
+                raise RuntimeError('SQL exporter is not available.')
+            export_sql(questions, outpath)
+
+        self.stdout.write(self.style.SUCCESS(f'Generated {len(questions)} questions to {outpath}'))

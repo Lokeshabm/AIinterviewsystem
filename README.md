@@ -166,14 +166,3 @@ ai_interview_system/
 
 - Keep your OpenRouter API key secret and never expose it in the frontend
 - Use valid PDF/DOCX resume files under 5 MB
-
-## Question generator (local)
-
-This repository includes a standalone `question_generator` tool for generating MCQs and exports. You can run it from Django's management commands:
-
-```bash
-# generate 100 questions and write outputs under question_generator/output
-python manage.py generate_questions --count 100 --outdir question_generator/output
-```
-
-The command runs the local `question_generator/generator.py` script and writes `questions.json`, `questions.csv`, and SQL/mongo export files to the specified outdir.

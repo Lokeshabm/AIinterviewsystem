@@ -1,4 +1,5 @@
 import hashlib
+import json
 import os
 import random
 import re
@@ -16,6 +17,7 @@ from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 from .questions_bank import QUESTIONS_BANK, SKILL_KEYWORDS
 
+
 def parse_resume(file_obj, file_name):
     """Parse resume from PDF or DOCX file."""
     text = ''
@@ -31,6 +33,58 @@ def parse_resume(file_obj, file_name):
     else:
         raise ValueError('Unsupported file format. Please upload PDF or DOCX.')
     return text.strip()
+
+
+def load_question_generator_templates():
+    template_path = Path(settings.BASE_DIR) / 'question_generator' / 'templates.json'
+    if not template_path.exists():
+        return []
+    with template_path.open('r', encoding='utf-8') as template_file:
+        return json.load(template_file)
+
+
+def build_question_generator_questions(role, count=5):
+    try:
+        from question_generator.generator import build_question_from_template
+    except ImportError:
+        return []
+
+    templates = load_question_generator_templates()
+    if not templates:
+        return []
+
+    role_lower = role.lower() if role else ''
+    prioritized = [tpl for tpl in templates if any(role_lower in str(tpl.get(field, '')).lower() for field in ['branch', 'subject', 'topic'])]
+    if not prioritized:
+        prioritized = templates
+
+    questions = []
+    for tpl in prioritized:
+        if len(questions) >= count:
+            break
+        generated = build_question_from_template(tpl)
+        statement = generated.get('statement', '')
+        options_text = ''
+        if generated.get('options'):
+            rendered_options = []
+            for opt in generated['options'][:4]:
+                if isinstance(opt, dict):
+                    label = opt.get('label', '')
+                    text = opt.get('text', '')
+                else:
+                    label = ''
+                    text = str(opt)
+                rendered_options.append(f"{label + '. ' if label else ''}{text}")
+            options_text = '\n'.join(rendered_options)
+            if options_text:
+                statement = f"{statement}\n\nOptions:\n{options_text}"
+        questions.append({
+            'text': statement,
+            'category': 'technical' if generated.get('qtype') in ('MCQ', 'TF', 'NUM') else 'technical'
+        })
+
+    return questions[:count]
+
 
 def extract_resume_skills(resume_text):
     """
@@ -56,13 +110,23 @@ def extract_resume_skills(resume_text):
 
 def generate_questions_from_resume(resume_text, role):
     """
-    Generate 5 interview questions based on detected resume skills.
-    
-    Returns a JSON-formatted string with technical, hr, and project questions.
+    Generate 5 interview questions based on resume content and the candidate role.
+
+    Uses question_generator templates when available, with a fallback to internal QUESTIONS_BANK if necessary.
+    Returns a JSON-formatted string with technical, project, and hr question lists.
     """
+    questions = build_question_generator_questions(role, count=5)
+    if questions:
+        result = {
+            'technical': [q['text'] for q in questions[:4]],
+            'project': [questions[4]['text']] if len(questions) >= 5 else [],
+            'hr': []
+        }
+        return json.dumps(result)
+
     # Extract skills from resume
     detected_skills = extract_resume_skills(resume_text)
-    
+
     # If no skills detected, use general questions
     if not detected_skills:
         detected_skills = {
@@ -72,16 +136,16 @@ def generate_questions_from_resume(resume_text, role):
             'html_css': 1,
             'hr': 1
         }
-    
+
     # Sort skills by frequency (highest first)
     sorted_skills = sorted(detected_skills.items(), key=lambda x: x[1], reverse=True)
-    
+
     # Select questions based on detected skills
     selected_questions = []
-    
+
     # Prioritize technical questions
     skills_to_use = [skill[0] for skill in sorted_skills][:4]  # Use top 4 skills
-    
+
     # Select 4 technical questions from detected skills
     for skill in skills_to_use:
         if skill in QUESTIONS_BANK:
@@ -89,7 +153,7 @@ def generate_questions_from_resume(resume_text, role):
             if available_questions:
                 selected_question = random.choice(available_questions)
                 selected_questions.append(selected_question)
-    
+
     # Ensure we have exactly 5 questions
     while len(selected_questions) < 5:
         # Add HR or project-based questions
@@ -105,17 +169,17 @@ def generate_questions_from_resume(resume_text, role):
                 hr_questions = QUESTIONS_BANK['hr']
                 if hr_questions:
                     selected_questions.append(random.choice(hr_questions))
-    
+
     # Limit to exactly 5 questions
     selected_questions = selected_questions[:5]
-    
+
     # Categorize questions for JSON output
     result = {
         'technical': [],
         'project': [],
         'hr': []
     }
-    
+
     for q in selected_questions:
         if any(q in QUESTIONS_BANK.get(skill, []) for skill in skills_to_use):
             result['technical'].append(q)
@@ -125,20 +189,19 @@ def generate_questions_from_resume(resume_text, role):
             result['hr'].append(q)
         else:
             result['technical'].append(q)
-    
+
     # Ensure we return exactly 5 questions
     result['technical'] = result['technical'][:4]
     result['project'] = result['project'][:1]
     result['hr'] = result['hr'][:0]
-    
+
     # If we don't have enough, fill from the selected questions
     all_selected = selected_questions
     if not result['technical']:
         result['technical'] = all_selected[:4]
     if not result['project']:
         result['project'] = all_selected[4:5]
-    
-    import json
+
     return json.dumps(result)
 
 def evaluate_answer_with_ai(question, answer):
