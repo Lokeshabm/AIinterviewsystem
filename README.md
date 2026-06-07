@@ -29,7 +29,7 @@ pip install -r requirements.txt
 DJANGO_SECRET_KEY=your-actual-secret-key-here
 DJANGO_DEBUG=True
 DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
-OPENROUTER_API_KEY=YOUR_API_KEY_HERE
+OPENROUTER_API_KEY=your-openrouter-api-key
 MEDIA_ROOT=media
 MEDIA_URL=/media/
 ```
