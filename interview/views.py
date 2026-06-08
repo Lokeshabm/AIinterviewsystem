@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -236,6 +237,7 @@ def certificate_view(request, interview_id):
 
 
 @login_required
+@login_required
 def download_certificate_pdf(request, interview_id):
     interview = get_object_or_404(Interview, id=interview_id, user=request.user)
     if not interview.passed or interview.total_score is None:
@@ -246,3 +248,70 @@ def download_certificate_pdf(request, interview_id):
     response = HttpResponse(pdf_buffer, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="Certificate_{candidate_id}.pdf"'
     return response
+
+
+@login_required
+def import_questions_view(request):
+    """View to trigger question import from generated JSON file."""
+    if request.method == 'GET':
+        return render(request, 'interview/import_questions.html')
+    
+    if request.method == 'POST':
+        json_path = request.POST.get('json_path', '').strip()
+        if not json_path:
+            messages.error(request, 'JSON path is required.')
+            return render(request, 'interview/import_questions.html')
+        
+        json_file = Path(json_path)
+        if not json_file.exists():
+            messages.error(request, f'File not found: {json_path}')
+            return render(request, 'interview/import_questions.html')
+        
+        try:
+            with open(json_file, 'r', encoding='utf-8') as f:
+                questions_data = json.load(f)
+        except json.JSONDecodeError as e:
+            messages.error(request, f'Invalid JSON: {e}')
+            return render(request, 'interview/import_questions.html')
+        
+        if not isinstance(questions_data, list):
+            messages.error(request, 'Expected JSON file to contain a list of questions.')
+            return render(request, 'interview/import_questions.html')
+        
+        # Get or create "Question Bank" Interview
+        from django.contrib.auth.models import User as DjangoUser
+        from datetime import datetime
+        admin_user, _ = DjangoUser.objects.get_or_create(
+            username='question_bank_admin',
+            defaults={'email': 'admin@questionbank.local'}
+        )
+        question_bank, _ = Interview.objects.get_or_create(
+            user=admin_user,
+            role='Question Bank',
+            defaults={'date': datetime.now()}
+        )
+        
+        created = 0
+        skipped = 0
+        for q_data in questions_data:
+            try:
+                statement = q_data.get('statement', '').strip()
+                if not statement:
+                    continue
+                
+                # Check if question already exists
+                if not Question.objects.filter(text=statement).exists():
+                    Question.objects.create(
+                        interview=question_bank,
+                        text=statement,
+                        category='technical',
+                    )
+                    created += 1
+                else:
+                    skipped += 1
+            except Exception:
+                continue
+        
+        messages.success(request, f'Import complete: {created} created, {skipped} skipped.')
+        return redirect('import_questions')
+

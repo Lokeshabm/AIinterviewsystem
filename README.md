@@ -153,7 +153,59 @@ ai_interview_system/
 ├── ai_interview_system/         # Django settings
 ├── requirements.txt             # Python dependencies
 ├── .env                         # Environment variables
+
+## Question Generation and Import
+
+### Generate Questions
+
+Use the built-in question generator to create interview questions:
+
+```bash
+python manage.py generate_questions --count 100 --outdir question_generator/output
 ```
+
+The generator uses parameterized templates and deduplication by canonical text hash to ensure diversity and avoid duplicate questions.
+
+**Parameters:**
+- `--count`: Number of questions to generate (default: 50)
+- `--outdir`: Output directory (default: question_generator/output)
+
+**Output files** in the specified directory:
+- `generated_questions.json`: Primary JSON format (used for import)
+- `questions.json`: Full question objects with metadata
+- `questions.csv`: Tabular format with options A-D, correct answers, explanations
+- `questions.sql`: SQL INSERT statements for database
+- `questions.mongo.json`: MongoDB document format
+
+**Generator files:**
+- `question_generator/generator.py`: Main generation script with template-based question creation
+- `question_generator/templates.json`: Question templates for various subjects and difficulty levels
+- `question_generator/schema.sql`: PostgreSQL schema reference
+- `question_generator/mongo_schema.json`: MongoDB document schema example
+
+### Import Questions
+
+Import generated questions into the database as a "Question Bank":
+
+```bash
+python manage.py import_questions question_generator/output/generated_questions.json
+```
+
+Or via the web interface:
+1. Log in to the dashboard
+2. Navigate to `/interview/import_questions/`
+3. Enter the path to the JSON file: `question_generator/output/generated_questions.json`
+4. Click "Import Questions"
+
+The imported questions are stored in a special "Question Bank" Interview record and can be used for future interviews.
+
+**Options:**
+
+```bash
+python manage.py import_questions <json_file> --skip-duplicates
+```
+
+- `--skip-duplicates`: Skip questions that already exist in the database
 
 ## Testing
 
@@ -166,3 +218,7 @@ ai_interview_system/
 
 - Keep your OpenRouter API key secret and never expose it in the frontend
 - Use valid PDF/DOCX resume files under 5 MB
+- Generated questions are deduplicated by canonical text hash to ensure diversity
+- Imported questions are stored in a Question Bank Interview for centralized management
+- The question generator is a reference implementation for template-based question generation
+

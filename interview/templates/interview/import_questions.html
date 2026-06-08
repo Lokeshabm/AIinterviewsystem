@@ -1,0 +1,52 @@
+{% extends 'interview/base.html' %}
+
+{% block title %}Import Questions{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h2>Import Questions from JSON</h2>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" class="form-group">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="json_path" class="form-label">JSON File Path</label>
+                            <input type="text" class="form-control" id="json_path" name="json_path"
+                                   placeholder="e.g., question_generator/output/questions.json" required>
+                            <small class="form-text text-muted">
+                                Relative path from project root to questions.json file
+                            </small>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Import Questions</button>
+                        <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+                    </form>
+
+                    <hr>
+
+                    <div class="alert alert-info" role="alert">
+                        <h5>How to use:</h5>
+                        <ol>
+                            <li>Run: <code>python manage.py generate_questions --count 50 --outdir question_generator/output</code></li>
+                            <li>Enter the path: <code>question_generator/output/questions.json</code></li>
+                            <li>Click "Import Questions"</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

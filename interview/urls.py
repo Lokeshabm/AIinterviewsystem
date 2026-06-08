@@ -15,4 +15,5 @@ urlpatterns = [
     path('view_scores/', views.view_scores, name='view_scores'),
     path('certificate/<int:interview_id>/', views.certificate_view, name='certificate'),
     path('certificate/<int:interview_id>/download/', views.download_certificate_pdf, name='certificate_download'),
+    path('import_questions/', views.import_questions_view, name='import_questions'),
 ]
