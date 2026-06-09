@@ -24,7 +24,7 @@
                         <div class="mb-3">
                             <label for="json_path" class="form-label">JSON File Path</label>
                             <input type="text" class="form-control" id="json_path" name="json_path"
-                                   placeholder="e.g., question_generator/output/questions.json" required>
+                                   placeholder="e.g., output/questions.json" required>
                             <small class="form-text text-muted">
                                 Relative path from project root to questions.json file
                             </small>
@@ -39,8 +39,8 @@
                     <div class="alert alert-info" role="alert">
                         <h5>How to use:</h5>
                         <ol>
-                            <li>Run: <code>python manage.py generate_questions --count 50 --outdir question_generator/output</code></li>
-                            <li>Enter the path: <code>question_generator/output/questions.json</code></li>
+                            <li>Prepare a valid JSON file containing interview questions.</li>
+                            <li>Enter the path to that file from the project root.</li>
                             <li>Click "Import Questions"</li>
                         </ol>
                     </div>

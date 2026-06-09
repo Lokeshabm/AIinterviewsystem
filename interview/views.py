@@ -1,4 +1,5 @@
 import json
+import random
 from pathlib import Path
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
@@ -126,12 +127,12 @@ def upload_resume(request):
         question_data_text = generate_questions_from_resume(resume_text, role)
         payload = parse_question_response_text(question_data_text)
         interview = Interview.objects.create(user=request.user, role=role)
-        for item in payload.get('technical', [])[:3]:
-            Question.objects.create(interview=interview, text=item, category='technical')
-        for item in payload.get('project', [])[:2]:
-            Question.objects.create(interview=interview, text=item, category='project')
-        for item in payload.get('hr', [])[:2]:
-            Question.objects.create(interview=interview, text=item, category='hr')
+        for category_name, items in payload.items():
+            for item in items:
+                if not item:
+                    continue
+                category = category_name if category_name in ['technical', 'project', 'hr'] else 'technical'
+                Question.objects.create(interview=interview, text=item, category=category)
         return redirect('start_interview', interview_id=interview.id)
     except Exception as exc:
         messages.error(request, f'Unable to generate questions: {exc}')
@@ -147,13 +148,15 @@ def generate_questions(request):
 @login_required
 def start_interview(request, interview_id):
     interview = get_object_or_404(Interview, id=interview_id, user=request.user)
-    questions = interview.questions.all()
-    if not questions.exists():
+    questions = list(interview.questions.all())
+    if not questions:
         messages.warning(request, 'No questions available yet. Upload your resume first.')
         return redirect('dashboard')
+    random.shuffle(questions)
     return render(request, 'interview/interview.html', {
         'interview': interview,
         'questions': questions,
+        'questions_count': len(questions),
     })
 
 

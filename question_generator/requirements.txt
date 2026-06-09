@@ -1,2 +1,0 @@
-# Minimal requirements for reference generator
-# No external packages required for this simple script

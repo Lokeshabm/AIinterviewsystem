@@ -154,47 +154,18 @@ ai_interview_system/
 ├── requirements.txt             # Python dependencies
 ├── .env                         # Environment variables
 
-## Question Generation and Import
+## Import Questions
 
-### Generate Questions
-
-Use the built-in question generator to create interview questions:
+Import questions into the database from a JSON file as a "Question Bank":
 
 ```bash
-python manage.py generate_questions --count 100 --outdir question_generator/output
-```
-
-The generator uses parameterized templates and deduplication by canonical text hash to ensure diversity and avoid duplicate questions.
-
-**Parameters:**
-- `--count`: Number of questions to generate (default: 50)
-- `--outdir`: Output directory (default: question_generator/output)
-
-**Output files** in the specified directory:
-- `generated_questions.json`: Primary JSON format (used for import)
-- `questions.json`: Full question objects with metadata
-- `questions.csv`: Tabular format with options A-D, correct answers, explanations
-- `questions.sql`: SQL INSERT statements for database
-- `questions.mongo.json`: MongoDB document format
-
-**Generator files:**
-- `question_generator/generator.py`: Main generation script with template-based question creation
-- `question_generator/templates.json`: Question templates for various subjects and difficulty levels
-- `question_generator/schema.sql`: PostgreSQL schema reference
-- `question_generator/mongo_schema.json`: MongoDB document schema example
-
-### Import Questions
-
-Import generated questions into the database as a "Question Bank":
-
-```bash
-python manage.py import_questions question_generator/output/generated_questions.json
+python manage.py import_questions path/to/questions.json
 ```
 
 Or via the web interface:
 1. Log in to the dashboard
 2. Navigate to `/interview/import_questions/`
-3. Enter the path to the JSON file: `question_generator/output/generated_questions.json`
+3. Enter the path to the JSON file
 4. Click "Import Questions"
 
 The imported questions are stored in a special "Question Bank" Interview record and can be used for future interviews.

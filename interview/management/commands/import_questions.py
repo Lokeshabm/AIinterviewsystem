@@ -16,7 +16,7 @@ class Command(BaseCommand):
         parser.add_argument(
             'json_file',
             type=str,
-            help='Path to questions.json file (e.g., question_generator/output/questions.json)'
+            help='Path to questions.json file (e.g., output/questions.json)'
         )
         parser.add_argument(
             '--skip-duplicates',

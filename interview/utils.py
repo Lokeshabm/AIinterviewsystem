@@ -35,55 +35,51 @@ def parse_resume(file_obj, file_name):
     return text.strip()
 
 
-def load_question_generator_templates():
-    template_path = Path(settings.BASE_DIR) / 'question_generator' / 'templates.json'
-    if not template_path.exists():
-        return []
-    with template_path.open('r', encoding='utf-8') as template_file:
-        return json.load(template_file)
+def _select_bank_questions_for_resume(detected_skills, count, exclude=None):
+    exclude = set(exclude or [])
+    selected = []
+    seen = set(exclude)
 
+    # Use the most relevant skills first.
+    skills_to_use = [skill for skill, _ in sorted(detected_skills.items(), key=lambda x: x[1], reverse=True)]
+    random.shuffle(skills_to_use)
 
-def build_question_generator_questions(role, count=5):
-    try:
-        from question_generator.generator import build_question_from_template
-    except ImportError:
-        return []
-
-    templates = load_question_generator_templates()
-    if not templates:
-        return []
-
-    role_lower = role.lower() if role else ''
-    prioritized = [tpl for tpl in templates if any(role_lower in str(tpl.get(field, '')).lower() for field in ['branch', 'subject', 'topic'])]
-    if not prioritized:
-        prioritized = templates
-
-    questions = []
-    for tpl in prioritized:
-        if len(questions) >= count:
+    for skill in skills_to_use:
+        if len(selected) >= count:
             break
-        generated = build_question_from_template(tpl)
-        statement = generated.get('statement', '')
-        options_text = ''
-        if generated.get('options'):
-            rendered_options = []
-            for opt in generated['options'][:4]:
-                if isinstance(opt, dict):
-                    label = opt.get('label', '')
-                    text = opt.get('text', '')
-                else:
-                    label = ''
-                    text = str(opt)
-                rendered_options.append(f"{label + '. ' if label else ''}{text}")
-            options_text = '\n'.join(rendered_options)
-            if options_text:
-                statement = f"{statement}\n\nOptions:\n{options_text}"
-        questions.append({
-            'text': statement,
-            'category': 'technical' if generated.get('qtype') in ('MCQ', 'TF', 'NUM') else 'technical'
-        })
+        available = [q for q in QUESTIONS_BANK.get(skill, []) if q not in seen]
+        if not available:
+            continue
+        question = random.choice(available)
+        selected.append({'text': question, 'category': 'technical'})
+        seen.add(question)
 
-    return questions[:count]
+    # Add one project-based and one HR question if needed.
+    if len(selected) < count and 'project_based' in QUESTIONS_BANK:
+        available = [q for q in QUESTIONS_BANK['project_based'] if q not in seen]
+        if available:
+            question = random.choice(available)
+            selected.append({'text': question, 'category': 'project'})
+            seen.add(question)
+
+    if len(selected) < count and 'hr' in QUESTIONS_BANK:
+        available = [q for q in QUESTIONS_BANK['hr'] if q not in seen]
+        if available:
+            question = random.choice(available)
+            selected.append({'text': question, 'category': 'hr'})
+            seen.add(question)
+
+    # Fill the remainder with any unseen technical questions.
+    if len(selected) < count:
+        all_technical = [q for cat, questions in QUESTIONS_BANK.items() if cat not in ('project_based', 'hr') for q in questions if q not in seen]
+        random.shuffle(all_technical)
+        for question in all_technical:
+            if len(selected) >= count:
+                break
+            selected.append({'text': question, 'category': 'technical'})
+            seen.add(question)
+
+    return selected[:count]
 
 
 def extract_resume_skills(resume_text):
@@ -112,19 +108,9 @@ def generate_questions_from_resume(resume_text, role):
     """
     Generate 5 interview questions based on resume content and the candidate role.
 
-    Uses question_generator templates when available, with a fallback to internal QUESTIONS_BANK if necessary.
+    Uses the internal QUESTIONS_BANK only.
     Returns a JSON-formatted string with technical, project, and hr question lists.
     """
-    questions = build_question_generator_questions(role, count=5)
-    if questions:
-        result = {
-            'technical': [q['text'] for q in questions[:4]],
-            'project': [questions[4]['text']] if len(questions) >= 5 else [],
-            'hr': []
-        }
-        return json.dumps(result)
-
-    # Extract skills from resume
     detected_skills = extract_resume_skills(resume_text)
 
     # If no skills detected, use general questions
@@ -137,70 +123,30 @@ def generate_questions_from_resume(resume_text, role):
             'hr': 1
         }
 
-    # Sort skills by frequency (highest first)
-    sorted_skills = sorted(detected_skills.items(), key=lambda x: x[1], reverse=True)
+    questions = _select_bank_questions_for_resume(detected_skills, 5)
 
-    # Select questions based on detected skills
-    selected_questions = []
-
-    # Prioritize technical questions
-    skills_to_use = [skill[0] for skill in sorted_skills][:4]  # Use top 4 skills
-
-    # Select 4 technical questions from detected skills
-    for skill in skills_to_use:
-        if skill in QUESTIONS_BANK:
-            available_questions = QUESTIONS_BANK[skill]
-            if available_questions:
-                selected_question = random.choice(available_questions)
-                selected_questions.append(selected_question)
-
-    # Ensure we have exactly 5 questions
-    while len(selected_questions) < 5:
-        # Add HR or project-based questions
-        if len(selected_questions) < 4:
-            # Add project-based question
-            if 'project_based' in QUESTIONS_BANK:
-                project_questions = QUESTIONS_BANK['project_based']
-                if project_questions:
-                    selected_questions.append(random.choice(project_questions))
-        else:
-            # Add HR question
-            if 'hr' in QUESTIONS_BANK:
-                hr_questions = QUESTIONS_BANK['hr']
-                if hr_questions:
-                    selected_questions.append(random.choice(hr_questions))
-
-    # Limit to exactly 5 questions
-    selected_questions = selected_questions[:5]
-
-    # Categorize questions for JSON output
     result = {
         'technical': [],
         'project': [],
         'hr': []
     }
 
-    for q in selected_questions:
-        if any(q in QUESTIONS_BANK.get(skill, []) for skill in skills_to_use):
-            result['technical'].append(q)
-        elif q in QUESTIONS_BANK.get('project_based', []):
-            result['project'].append(q)
-        elif q in QUESTIONS_BANK.get('hr', []):
-            result['hr'].append(q)
-        else:
-            result['technical'].append(q)
+    for q in questions[:5]:
+        category = q.get('category', 'technical') if isinstance(q, dict) else 'technical'
+        text = q['text'] if isinstance(q, dict) else q
+        if category not in result:
+            category = 'technical'
+        result[category].append(text)
 
-    # Ensure we return exactly 5 questions
-    result['technical'] = result['technical'][:4]
-    result['project'] = result['project'][:1]
-    result['hr'] = result['hr'][:0]
-
-    # If we don't have enough, fill from the selected questions
-    all_selected = selected_questions
-    if not result['technical']:
-        result['technical'] = all_selected[:4]
-    if not result['project']:
-        result['project'] = all_selected[4:5]
+    # Fill shorter categories with technical questions if necessary
+    total_questions = sum(len(vals) for vals in result.values())
+    if total_questions < 5:
+        extra = _select_bank_questions_for_resume(detected_skills, 5 - total_questions, exclude=[q for vals in result.values() for q in vals])
+        for q in extra:
+            category = q.get('category', 'technical')
+            if category not in result:
+                category = 'technical'
+            result[category].append(q['text'])
 
     return json.dumps(result)
 

@@ -1,4 +1,0 @@
-question_uid,branch,subject,topic,qtype,difficulty,statement,option_A,option_B,option_C,option_D,correct_answer,explanation,tags,estimated_time,marks
-b5f234d9-8f1b-42ba-8abb-708b90fd6c19,CSE,Data Structures,Binary Search Tree,MCQ,Easy,"Given a binary search tree with 119 nodes, what is the average time complexity of search?",O(1),O(log n),O(n log n),O(n),O(log n),Standard complexity; balanced tree yields O(log n) average.,,5,2
-63c5a2e6-4033-46a1-a092-141779da8783,ECE,Circuits,Resistors,NUM,Medium,A series circuit has resistors R1=71 ohms and R2=16 ohms. Compute the total resistance.,,,,,87,Total resistance in series is R1+R2 = 71+16 = 87 ohms.,,7,3
-1c38f4ec-001e-4bba-a9cc-4846af9a1824,CSE,Algorithms,Time Complexity,TF,Easy,The time complexity of binary search is O(log n).,True,False,,,True,Binary search has logarithmic time complexity.,,1,1
